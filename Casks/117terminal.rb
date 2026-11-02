@@ -1,9 +1,9 @@
 cask "117terminal" do
   arch arm: "arm64", intel: "x64"
 
-  version "0.1.0"
-  sha256 arm:   "0000000000000000000000000000000000000000000000000000000000000000",
-         intel: "1111111111111111111111111111111111111111111111111111111111111111"
+  version "0.1.1"
+  sha256 arm:   "c0f7e0f6ae0cc5b68d0ba14a55d00f66cab873e8157d6f29bd8b66366356c779",
+         intel: "15b98a09dd8747d3fa8dc8bb81f23096eb565125582064981bc26492aca8f7b0"
 
   url "https://github.com/1985epma/117-terminal/releases/download/v#{version}/117Terminal-#{version}-mac-#{arch}.dmg"
   name "117Terminal"

@@ -2,8 +2,8 @@ class Terminal117 < Formula
   desc "Block-based terminal with Agent Mode, zsh extensions and MCP"
   homepage "https://github.com/1985epma/117-terminal"
   # Linux x64 tarball from the GitHub release. If the asset name changes, edit only this line.
-  url "https://github.com/1985epma/117-terminal/releases/download/v0.1.0/117Terminal-0.1.0-linux-x64.tar.gz"
-  sha256 "0000000000000000000000000000000000000000000000000000000000000000"
+  url "https://github.com/1985epma/117-terminal/releases/download/v0.1.1/117Terminal-0.1.1-linux-x64.tar.gz"
+  sha256 "fff48cf8a32e758c458392ab3fd54f2c00b16cf8d5837d49bea4be1f935dbf04"
   license "MIT"
 
   livecheck do
