@@ -1,9 +1,14 @@
 class Terminal117 < Formula
   desc "Block-based terminal with Agent Mode, zsh extensions and MCP"
   homepage "https://github.com/1985epma/117-terminal"
-  # Linux x64 tarball from the GitHub release. If the asset name changes, edit only this line.
-  url "https://github.com/1985epma/117-terminal/releases/download/v0.1.2/117Terminal-0.1.2-linux-x64.tar.gz"
-  sha256 "562838a87e2710db05b65cc1c2f28d36f708a2d3ad6a7bd5f4a28a99cd451308"
+  # Linux tarballs from the GitHub release; scripts/bump.sh rewrites both.
+  if Hardware::CPU.arm?
+    url "https://github.com/1985epma/117-terminal/releases/download/v0.1.3/117Terminal-0.1.3-linux-arm64.tar.gz"
+    sha256 "3a69d8d33363b952d12a99aae70b66d790976a0acbc32b1f710cbae158c47f91"
+  else
+    url "https://github.com/1985epma/117-terminal/releases/download/v0.1.3/117Terminal-0.1.3-linux-x64.tar.gz"
+    sha256 "115e3b78c87daa5ec63deb2569763d7f5cf2a594eb5f7205a9a1d3b70dc6f610"
+  end
   license "MIT"
 
   livecheck do
@@ -11,7 +16,6 @@ class Terminal117 < Formula
     strategy :github_latest
   end
 
-  depends_on arch: :x86_64
   depends_on :linux
 
   def install

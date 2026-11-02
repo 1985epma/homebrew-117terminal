@@ -49,13 +49,15 @@ OLD="$(sed -n 's/^  version "\(.*\)"$/\1/p' "${CASK}")"
   echo "could not read the version from ${CASK}" >&2
   exit 1
 }
-# The Linux asset name lives only in the formula's url line; carry it over with the new version.
-OLD_LINUX_URL="$(sed -n 's/^  url "\(.*\)"$/\1/p' "${FORMULA}")"
-[[ -n "${OLD_LINUX_URL}" ]] || {
-  echo "could not read the url from ${FORMULA}" >&2
+# The Linux asset names live only in the formula's url lines; carry them over with the new version.
+OLD_ARM_URL="$(awk '/if Hardware::CPU.arm\?/{f=1} f && /^    url /{print; exit}' "${FORMULA}" | sed 's/^    url "\(.*\)"$/\1/')"
+OLD_X64_URL="$(awk '/^  else$/{f=1} f && /^    url /{print; exit}' "${FORMULA}" | sed 's/^    url "\(.*\)"$/\1/')"
+[[ -n "${OLD_ARM_URL}" && -n "${OLD_X64_URL}" ]] || {
+  echo "could not read the arm/x64 urls from ${FORMULA}" >&2
   exit 1
 }
-LINUX_URL="${OLD_LINUX_URL//"${OLD}"/${NEW}}"
+LINUX_ARM_URL="${OLD_ARM_URL//"${OLD}"/${NEW}}"
+LINUX_X64_URL="${OLD_X64_URL//"${OLD}"/${NEW}}"
 
 BASE="https://github.com/${REPO}/releases/download/v${NEW}"
 TMP="$(mktemp -d)"
@@ -63,7 +65,8 @@ trap 'rm -rf "$TMP"' EXIT
 
 ARM_SHA="$(fetch_sha "${BASE}/117Terminal-${NEW}-mac-arm64.dmg")"
 INTEL_SHA="$(fetch_sha "${BASE}/117Terminal-${NEW}-mac-x64.dmg")"
-LINUX_SHA="$(fetch_sha "${LINUX_URL}")"
+LINUX_ARM_SHA="$(fetch_sha "${LINUX_ARM_URL}")"
+LINUX_X64_SHA="$(fetch_sha "${LINUX_X64_URL}")"
 
 # Rewrite in place (portable between BSD and GNU sed: write to a temp file, then move).
 rewrite() {
@@ -77,20 +80,28 @@ s/^  sha256 arm: +\"[0-9a-f]{64}\",$/  sha256 arm:   \"${ARM_SHA}\",/
 s/^         intel: \"[0-9a-f]{64}\"$/         intel: \"${INTEL_SHA}\"/
 "
 
-rewrite "${FORMULA}" "
-s|^  url \".*\"$|  url \"${LINUX_URL}\"|
-s/^  sha256 \"[0-9a-f]{64}\"$/  sha256 \"${LINUX_SHA}\"/
-"
+# Formula: the url/sha256 pair in the "if Hardware::CPU.arm?" branch and in its "else".
+awk -v arm_url="${LINUX_ARM_URL}" -v arm_sha="${LINUX_ARM_SHA}" \
+  -v x64_url="${LINUX_X64_URL}" -v x64_sha="${LINUX_X64_SHA}" '
+  /if Hardware::CPU.arm\?/ { blk = "arm" }
+  /^  else$/ { blk = "x64" }
+  blk != "" && /^    url / { sub(/".*"/, "\"" (blk == "arm" ? arm_url : x64_url) "\"") }
+  blk != "" && /^    sha256 / { sub(/"[0-9a-f]+"/, "\"" (blk == "arm" ? arm_sha : x64_sha) "\""); blk = "" }
+  { print }
+' "${FORMULA}" >"${TMP}/rewrite" && cat "${TMP}/rewrite" >"${FORMULA}"
 
 # Make sure every value landed.
 grep -q "version \"${NEW}\"" "${CASK}"
 grep -q "${ARM_SHA}" "${CASK}"
 grep -q "${INTEL_SHA}" "${CASK}"
-grep -q "${LINUX_SHA}" "${FORMULA}"
-grep -qF "${LINUX_URL}" "${FORMULA}"
+grep -q "${LINUX_ARM_SHA}" "${FORMULA}"
+grep -q "${LINUX_X64_SHA}" "${FORMULA}"
+grep -qF "${LINUX_ARM_URL}" "${FORMULA}"
+grep -qF "${LINUX_X64_URL}" "${FORMULA}"
 
 echo "Updated to ${NEW}:"
 echo "  cask arm64  ${ARM_SHA}"
 echo "  cask x64    ${INTEL_SHA}"
-echo "  linux x64   ${LINUX_SHA}"
+echo "  linux arm64 ${LINUX_ARM_SHA}"
+echo "  linux x64   ${LINUX_X64_SHA}"
 echo "Next: brew style --fix . && git commit -am \"117terminal ${NEW}\""

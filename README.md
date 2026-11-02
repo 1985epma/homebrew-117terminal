@@ -5,13 +5,14 @@ Agent Mode, zsh extensions and MCP. By 117-Labs.
 
 ## Install
 
-**macOS** (Apple Silicon and Intel, macOS 13 Ventura or newer), installs `117Terminal.app` into `/Applications`:
+**macOS** (Apple Silicon and Intel, macOS 13 Ventura or newer), installs `117Terminal.app` into `/Applications`
+and a `117terminal` command (`117terminal --serve` opens it in a browser, e.g. on a HarmonyOS tablet):
 
     brew tap 1985epma/117terminal
     brew trust 1985epma/117terminal
     brew install --cask 1985epma/117terminal/117terminal
 
-**Linux** (Homebrew on Linux, x86_64):
+**Linux** (Homebrew on Linux, x86_64 and arm64):
 
     brew tap 1985epma/117terminal
     brew trust 1985epma/117terminal
