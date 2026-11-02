@@ -17,9 +17,24 @@ cask "117terminal" do
 
   depends_on macos: :ventura
 
+  # Electron finds its helper apps next to the path it was started from, so a symlink to the
+  # executable crashes; a small wrapper script runs the real path instead.
   app "117Terminal.app"
   # `117terminal --serve` runs it headless for a browser (HarmonyOS, tablets).
-  binary "#{appdir}/117Terminal.app/Contents/MacOS/117Terminal", target: "117terminal"
+  binary "117terminal.wrapper.sh", target: "117terminal"
+
+  preflight_steps do
+    write_file "117terminal.wrapper.sh", <<~EOS
+      #!/bin/sh
+      for dir in /Applications "$HOME/Applications"; do
+        app="$dir/117Terminal.app/Contents/MacOS/117Terminal"
+        [ -x "$app" ] && exec "$app" "$@"
+      done
+      echo "117terminal: 117Terminal.app not found in /Applications or ~/Applications" >&2
+      exit 1
+    EOS
+    set_permissions "117terminal.wrapper.sh", "0755"
+  end
 
   # The app is ad-hoc signed only (not notarized by Apple); remove the quarantine flag so it opens
   # without a Gatekeeper warning.
